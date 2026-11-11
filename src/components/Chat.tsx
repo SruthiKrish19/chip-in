@@ -6,9 +6,15 @@ type Turn = { role: "user" | "assistant"; content: string };
 
 const SUGGESTIONS = ["Who hasn't paid?", "Send a reminder to everyone unpaid", "Add Taylor (taylor@example.com)", "What happens if we cancel?"];
 
-export function Chat({ potId, onChanged }: { potId: string; onChanged: () => void }) {
+export function Chat({ potId, onChanged, aiMode = "fallback" }: { potId: string; onChanged: () => void; aiMode?: "claude" | "fallback" }) {
   const [history, setHistory] = useState<Turn[]>([
-    { role: "assistant", content: "I'm watching this pot. Ask me who still owes, nudge people, add someone, or cancel." },
+    {
+      role: "assistant",
+      content:
+        aiMode === "claude"
+          ? "I'm watching this pot. Ask me who still owes, nudge people, add someone, or cancel."
+          : "Fallback mode (no AI credits on this hosted demo): I understand the suggested commands below. Run locally with ANTHROPIC_API_KEY for the full Claude assistant.",
+    },
   ]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);

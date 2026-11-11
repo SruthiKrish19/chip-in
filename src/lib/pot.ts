@@ -38,7 +38,10 @@ const save = (pot: Pot) => store().save(pot);
 
 // ---------- creation ----------
 
-export async function createPot(prompt: string, opts: { deadlineOverrideMinutes?: number } = {}): Promise<Pot> {
+export async function createPot(
+  prompt: string,
+  opts: { deadlineOverrideMinutes?: number; sample?: boolean; sampleKey?: string } = {},
+): Promise<Pot> {
   const { plan, source, notes } = await makePlan(prompt);
   const { products, source: productSource } = await searchProducts(plan.itemQuery, { maxPrice: plan.maxPrice });
   const item: Product = products[0];
@@ -68,10 +71,13 @@ export async function createPot(prompt: string, opts: { deadlineOverrideMinutes?
     status: "collecting",
     contributors,
     plan: { summary: plan.summary, source, notes },
+    sample: opts.sample || undefined,
+    sampleKey: opts.sampleKey,
     events: [],
     createdAt: now(),
     updatedAt: now(),
   };
+  if (opts.sample) log(pot, "sample", "Seeded as a SAMPLE pot for hosted-demo reviewers.");
   log(pot, "plan", `${source === "claude" ? "Claude" : "Fallback planner"} parsed the request: ${plan.summary}`);
   log(pot, "product", `${productSource === "channel3" ? "Channel3" : "Local catalogue"} found "${item.title}" at $${item.price.toFixed(2)}.`);
   log(pot, "split", `Split $${pot.total.toFixed(2)} ${n} ways: ${describeShares(shares)}.`);

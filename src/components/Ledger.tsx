@@ -4,21 +4,33 @@ import { useMemo, useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { AllCommunityModule, ModuleRegistry, themeQuartz, type ColDef, type ICellRendererParams } from "ag-grid-community";
 import type { Contributor, Pot } from "@/lib/types";
+import { SampleBadge } from "./SampleBadge";
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 const theme = themeQuartz.withParams({ accentColor: "#f59e0b", fontSize: 13, headerFontSize: 12, spacing: 6 });
 
-type Row = Contributor & { potId: string; potStatus: Pot["status"] };
+type Row = Contributor & { potId: string; potStatus: Pot["status"]; sample: boolean };
 
 export function Ledger({ pot, onChanged }: { pot: Pot; onChanged: () => void }) {
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  const rows: Row[] = useMemo(() => pot.contributors.map((c) => ({ ...c, potId: pot.id, potStatus: pot.status })), [pot]);
+  const rows: Row[] = useMemo(() => pot.contributors.map((c) => ({ ...c, potId: pot.id, potStatus: pot.status, sample: Boolean(pot.sample) })), [pot]);
 
   const cols: ColDef<Row>[] = useMemo(
     () => [
-      { field: "name", headerName: "Contributor", flex: 1.2, minWidth: 130 },
+      {
+        field: "name",
+        headerName: "Contributor",
+        flex: 1.2,
+        minWidth: 150,
+        cellRenderer: (p: ICellRendererParams<Row>) => (
+          <span className="inline-flex items-center gap-2">
+            {p.value as string}
+            {p.data?.sample && <SampleBadge />}
+          </span>
+        ),
+      },
       { field: "email", headerName: "Email", flex: 1.6, minWidth: 180, cellClass: "text-stone-500" },
       { field: "share", headerName: "Share", width: 100, valueFormatter: (p) => `$${Number(p.value).toFixed(2)}`, type: "rightAligned" },
       {

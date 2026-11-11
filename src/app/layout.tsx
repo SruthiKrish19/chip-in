@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import { DemoNotice } from "@/components/DemoNotice";
 
 export const metadata: Metadata = {
   title: "Chip-In",
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </nav>
           </div>
         </header>
+        <DemoNotice />
         <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
       </body>
     </html>

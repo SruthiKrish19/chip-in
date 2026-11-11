@@ -53,6 +53,9 @@ export type Pot = {
     carrier?: string;
   };
   plan: { summary: string; source: "claude" | "fallback"; notes?: string };
+  /** Seeded for reviewers of the hosted demo; shown with a SAMPLE badge. */
+  sample?: boolean;
+  sampleKey?: string;
   events: PotEvent[];
   createdAt: string;
   updatedAt: string;

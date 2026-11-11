@@ -6,12 +6,13 @@ import type { Pot } from "@/lib/types";
 import { StatusPill } from "./StatusPill";
 import { Ledger } from "./Ledger";
 import { Chat } from "./Chat";
+import { SampleBadge } from "./SampleBadge";
 
 function paidTotal(pot: Pot) {
   return Math.round(pot.contributors.filter((c) => c.status === "paid").reduce((s, c) => s + c.share, 0) * 100) / 100;
 }
 
-export function PotDashboard({ initial }: { initial: Pot }) {
+export function PotDashboard({ initial, aiMode = "fallback" }: { initial: Pot; aiMode?: "claude" | "fallback" }) {
   const [pot, setPot] = useState<Pot>(initial);
   const [busy, setBusy] = useState<string | null>(null);
   const params = useSearchParams();
@@ -72,6 +73,7 @@ export function PotDashboard({ initial }: { initial: Pot }) {
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold tracking-tight">{pot.title}</h1>
             <StatusPill status={pot.status} />
+            {pot.sample && <SampleBadge />}
           </div>
           <p className="mt-1 text-stone-600">
             {pot.item.title} · ${pot.total.toFixed(2)}
@@ -178,8 +180,17 @@ export function PotDashboard({ initial }: { initial: Pot }) {
           </div>
         </div>
         <div className="card flex min-h-[420px] flex-col">
-          <h2 className="mb-3 font-semibold">Ask Chip-In</h2>
-          <Chat potId={pot.id} onChanged={refresh} />
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="font-semibold">Ask Chip-In</h2>
+            {aiMode === "claude" ? (
+              <span className="pill bg-emerald-50 text-emerald-700">Claude</span>
+            ) : (
+              <span className="pill bg-amber-50 text-amber-700" title="No ANTHROPIC_API_KEY on this instance; deterministic keyword assistant">
+                fallback mode
+              </span>
+            )}
+          </div>
+          <Chat potId={pot.id} onChanged={refresh} aiMode={aiMode} />
         </div>
       </div>
     </div>

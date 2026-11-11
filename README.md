@@ -50,6 +50,58 @@ Every money movement is deterministic code in [`src/lib/pot.ts`](src/lib/pot.ts)
 - **Channel3**: `POST https://api.trychannel3.com/v1/search` with `x-api-key` finds the item and current price ([`src/lib/channel3.ts`](src/lib/channel3.ts)). Without a key, a labelled local catalogue is used and the UI says "local catalogue".
 - **AG Grid** (`ag-grid-community` + `ag-grid-react`): the contributor ledger with status pills, invoice numbers, payment/refund IDs, and per-row actions ([`src/components/Ledger.tsx`](src/components/Ledger.tsx)).
 
+## Hosted demo vs running locally
+
+The hosted demo at https://chip-in-sigma.vercel.app runs **without AI API credits**: the planner and the assistant fall back to deterministic code, and the UI says so (amber "Hosted demo" banner, "fallback mode" label on the assistant). Pots marked **SAMPLE** are seeded for reviewers via **Seed sample pots** (`POST /api/seed`, idempotent): "Office Switch" collecting with 4 of 6 paid, and a fully funded kettle pot with its PayPal order and approval link. PayPal sandbox invoices, QR codes, reminders, orders, refunds and Channel3 product search are all real on the hosted instance.
+
+To see the full Claude planner and tool-using assistant, run it locally:
+
+```bash
+git clone https://github.com/SruthiKrish19/chip-in && cd chip-in
+npm install
+cp .env.example .env.local
+# fill in the variables below
+npm run dev   # http://localhost:3000
+```
+
+| Variable | Required | Notes |
+| --- | --- | --- |
+| `PAYPAL_CLIENT_ID`, `PAYPAL_CLIENT_SECRET` | yes | From a sandbox REST app at developer.paypal.com |
+| `PAYPAL_ENV` | yes | `sandbox` |
+| `CHANNEL3_API_KEY` | recommended | Live product search; without it a labelled local catalogue is used |
+| `ANTHROPIC_API_KEY` | recommended | Turns on Claude for planning, messages and the assistant |
+| `ANTHROPIC_BASE_URL` | optional | e.g. `https://ai-gateway.vercel.sh` to route Claude via Vercel AI Gateway |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*`) | optional | Durable storage; otherwise `.data/pots.json` |
+| `NEXT_PUBLIC_BASE_URL` | yes on Vercel | PayPal return URLs and share links (`http://localhost:3000` locally) |
+
+### Driving Chip-In from a terminal agent
+
+Every action is a JSON endpoint, so an agent in a terminal (Claude Code, a script, `curl`) can run the whole loop:
+
+```bash
+BASE=http://localhost:3000   # or https://chip-in-sigma.vercel.app
+
+# 1. Create a pot from a sentence
+POT=$(curl -s -X POST $BASE/api/pots -H 'Content-Type: application/json' \
+  -d '{"prompt":"Get us a Nintendo Switch for the office, split 3 ways between a@example.com, b@example.com and c@example.com"}')
+ID=$(echo "$POT" | jq -r .id); echo "$POT" | jq '{id,title,total,contributors:[.contributors[]|{id,name,share,status,invoiceNumber}]}'
+
+# 2. Record a contributor payment against their PayPal invoice
+CID=$(echo "$POT" | jq -r '.contributors[0].id')
+curl -s -X POST $BASE/api/pots/$ID/contributors/$CID/simulate | jq '{status, paid:[.contributors[]|select(.status=="paid")|.name]}'
+
+# 3. Nudge everyone unpaid (real PayPal invoice reminders)
+curl -s -X POST $BASE/api/pots/$ID/remind | jq '{sent,names}'
+
+# 4. Ask the assistant
+curl -s -X POST $BASE/api/pots/$ID/chat -H 'Content-Type: application/json' -d '{"message":"who hasn\u0027t paid?"}' | jq -r .reply
+
+# 5. Cancel and refund
+curl -s -X POST $BASE/api/pots/$ID/cancel -H 'Content-Type: application/json' -d '{"reason":"Plans changed"}' | jq '{status, refunded:[.contributors[]|select(.status=="refunded")|.name]}'
+```
+
+Other endpoints: `GET /api/pots`, `GET /api/pots/{id}`, `POST /api/pots/{id}/contributors` (`{"name","email"}` to add a person and re-split), `GET /api/pots/{id}/contributors/{cid}/qr` (PNG), `POST /api/seed`, `GET /api/health`.
+
 ## Run it locally
 
 ```bash
@@ -59,7 +111,7 @@ cp .env.example .env.local   # fill in PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET f
 npm run dev                  # http://localhost:3000
 ```
 
-Then click **Seed “Office Switch” demo**, open a contributor's QR page, and press **Simulate payment** on each row until the pot is funded. The pot page shows **Approve PayPal order**; log in with a sandbox buyer, approve, and the app captures the order and attaches tracking.
+Then click **Seed sample pots**, open a contributor's QR page, and press **Simulate payment** on each row until the pot is funded. The pot page shows **Approve PayPal order**; log in with a sandbox buyer, approve, and the app captures the order and attaches tracking.
 
 ### Environment variables
 

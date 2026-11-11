@@ -3,6 +3,7 @@ import { listPots } from "@/lib/pot";
 import { hasChannel3, hasClaude, hasPayPal } from "@/lib/env";
 import { NewPotForm } from "@/components/NewPotForm";
 import { StatusPill } from "@/components/StatusPill";
+import { SampleBadge } from "@/components/SampleBadge";
 import { paidTotal } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -34,7 +35,7 @@ export default async function Home() {
           </form>
         </div>
         {pots.length === 0 ? (
-          <p className="card mt-3 text-sm text-stone-500">No pots yet. Create one on the left, or seed the demo pot.</p>
+          <p className="card mt-3 text-sm text-stone-500">No pots yet. Create one on the left, or seed the SAMPLE pots.</p>
         ) : (
           <ul className="mt-3 space-y-3">
             {pots.map((p) => {
@@ -45,7 +46,10 @@ export default async function Home() {
                   <Link href={`/pot/${p.id}`} className="block">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <div className="font-medium">{p.title}</div>
+                        <div className="flex items-center gap-2 font-medium">
+                          {p.title}
+                          {p.sample && <SampleBadge />}
+                        </div>
                         <div className="text-sm text-stone-500">{p.item.title}</div>
                       </div>
                       <StatusPill status={p.status} />
@@ -73,7 +77,7 @@ export default async function Home() {
 function SeedButton({ hasPots }: { hasPots: boolean }) {
   return (
     <button className="btn-secondary" formAction="/api/seed" type="submit">
-      {hasPots ? "Seed demo pot" : "Seed “Office Switch” demo"}
+      {hasPots ? "Seed sample pots" : "Seed SAMPLE pots"}
     </button>
   );
 }

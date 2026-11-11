@@ -37,7 +37,7 @@ export function fallbackPlan(prompt: string): Plan {
     lower.match(/between\s+(?:the\s+)?(\d+|[a-z]+)/);
   if (m) count = Number(m[1]) || WORD_NUMBERS[m[1]] || 0;
 
-  const emails = Array.from(text.matchAll(/[\w.+-]+@[\w-]+\.[\w.-]+/g)).map((x) => x[0]);
+  const emails = Array.from(text.matchAll(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g)).map((x) => x[0]);
   const participants = emails.map((email) => ({
     name: email.split("@")[0].replace(/[._+-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
     email,
@@ -49,7 +49,7 @@ export function fallbackPlan(prompt: string): Plan {
   const d = lower.match(/(?:in|within|by)\s+(\d+)\s+days?/) || lower.match(/(\d+)\s*-?\s*day deadline/);
   if (d) deadlineDays = Math.max(1, Math.min(60, Number(d[1])));
   else if (/\btomorrow\b/.test(lower)) deadlineDays = 1;
-  else if (/\b(this|by)\s+(friday|weekend|week)\b/.test(lower)) deadlineDays = 5;
+  else if (/\b(this|by|due)\s+(mon|tues|wednes|thurs|fri|satur|sun)day\b|\b(this|by)\s+(weekend|week)\b/.test(lower)) deadlineDays = 5;
   else if (/\bnext week\b/.test(lower)) deadlineDays = 10;
   else if (/\bend of (the )?month\b/.test(lower)) deadlineDays = 21;
 
@@ -59,14 +59,15 @@ export function fallbackPlan(prompt: string): Plan {
     lower.match(/\$\s*(\d+(?:\.\d+)?)/);
   const maxPrice = b ? Number(b[1]) : undefined;
 
-  // item: strip the verb, split clauses and quantities
+  // item: strip the verb and the recipient ("Buy Priya a ..."), then cut at the first clause boundary
   let item = text
-    .replace(/^(please\s+)?(can you\s+|could you\s+)?(get|buy|grab|order|find|purchase)\s+(us|me|the team|everyone)?\s*/i, "")
-    .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, "")
+    .replace(/^(please\s+)?(can you\s+|could you\s+|let'?s\s+)?(get|buy|grab|order|find|purchase|chip in for)\s+(us|me|the team|everyone)?\s*/i, "")
+    .replace(/^[A-Z][a-z]+\s+(a|an|the)\s+/, "")
+    .replace(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g, "")
     .split(
-      /,|;|\bsplit\b|\bbetween\b|\bfor the\b|\bfor our\b|\band\s+(?:split|divide)\b|\bdue\b|\bby\b|\bin\s+\d+\s+days?\b|\bunder\b|\bbudget\b/i,
+      /,|;|\.|\bsplit\b|\bbetween\b|\bfor\b|\band\s+(?:split|divide)\b|\bdue\b|\bby\b|\bin\s+\d+\s+days?\b|\bunder\b|\bbudget\b|\bwith\b/i,
     )[0]
-    .replace(/^(a|an|the|one)\s+/i, "")
+    .replace(/^(a|an|the|one|some)\s+/i, "")
     .trim();
   if (!item) item = text.slice(0, 60);
   const title = item.split(/\s+/).slice(0, 3).join(" ");

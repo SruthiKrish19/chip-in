@@ -81,9 +81,9 @@ async function fallbackChat(pot: Pot, message: string): Promise<string> {
     const r = await sendReminders(pot);
     return r.sent ? `Reminders sent to ${r.names.join(", ")}.` : "Everyone has paid, nobody to remind.";
   }
-  const add = m.match(/add\s+(?:a\s+)?(?:(\d+)(?:st|nd|rd|th)?\s+person|([a-z]+)(?:\s+\(?([\w.+-]+@[\w-]+\.[\w.-]+)\)?)?)/);
+  const add = m.match(/add\s+(?:a\s+)?(?:(\d+)(?:st|nd|rd|th)?\s+person|([a-z]+)(?:\s+\(?([\w.+-]+@[\w-]+(?:\.[\w-]+)+)\)?)?)/);
   if (/\badd\b|join|one more|another person/.test(m)) {
-    const email = message.match(/[\w.+-]+@[\w-]+\.[\w.-]+/)?.[0];
+    const email = message.match(/[\w.+-]+@[\w-]+(?:\.[\w-]+)+/)?.[0];
     const name = add?.[2] && !/person|someone|another|one/.test(add[2]) ? add[2][0].toUpperCase() + add[2].slice(1) : "New friend";
     await addContributor(pot, name, email);
     const s2 = potSummary(pot);

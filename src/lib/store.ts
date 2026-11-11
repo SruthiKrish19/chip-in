@@ -84,8 +84,8 @@ declare global {
 
 export function store(): Store {
   if (!globalThis.__chipinStore) {
-    const url = process.env.UPSTASH_REDIS_REST_URL;
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+    const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
     globalThis.__chipinStore = url && token ? new RedisStore(url, token) : new FileStore();
   }
   return globalThis.__chipinStore;

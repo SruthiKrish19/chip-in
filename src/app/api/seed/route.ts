@@ -17,7 +17,7 @@ const SAMPLES: { key: string; prompt: string; payFirst: number | "all" }[] = [
   },
   {
     key: "team-kettle",
-    prompt: "Get the team room a Fellow Stagg EKG electric kettle, split 2 ways between dev@example.com and nina@example.com. Deadline in 5 days.",
+    prompt: "Get us a Fellow Stagg EKG electric kettle for the team room, split 2 ways between omar.k@example.com and nina.r@example.com. Deadline in 5 days.",
     payFirst: "all",
   },
 ];

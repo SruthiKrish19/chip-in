@@ -1,5 +1,8 @@
 # Chip-In
 
+**Live demo:** https://chip-in-sigma.vercel.app  
+**Hackathon:** PayPal AI Hackathon 2026 (Devpost)
+
 **Say what the group wants to buy. The agent collects on PayPal, buys when funded, refunds if not.**
 
 > "Get us a Nintendo Switch for the office game nights, split 6 ways. Deadline in 5 days."

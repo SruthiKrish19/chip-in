@@ -8,6 +8,6 @@ export async function GET() {
     paypal: hasPayPal() ? env.paypalEnv : "missing",
     claude: hasClaude() ? env.anthropicModel : "fallback planner",
     channel3: hasChannel3() ? "live" : "local catalogue",
-    storage: process.env.UPSTASH_REDIS_REST_URL ? "upstash" : "json-file",
+    storage: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL ? "upstash" : "json-file",
   });
 }
